@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import { site } from '../../data/site';
+import { getAllPosts, getCategories, getTags } from '../../utils/posts';
+
+const posts = await getAllPosts();
+const tags = getTags(posts);
+const categories = getCategories(posts);
+---
+
+<BaseLayout title="About" description={site.longDescription}>
+  <section class="page-hero wrap about-hero">
+    <SectionHeader eyebrow="About" title="honemik" description={site.longDescription} align="center" />
+  </section>
+
+  <section class="section-pad section-pad--topless">
+    <div class="wrap about-grid">
+      <article class="about-card">
+        <h2>What lives here</h2>
+        <p>
+          This Astro version preserves the original Hugo blog content while giving it a warmer, softer home:
+          game notes, life logs, study tools, medical learning fragments, and small project records.
+        </p>
+        <p>
+          The source profile described honemik as a college student creating games, making videos, streaming,
+          and learning medicine. This page keeps that identity while making the older posts easier to browse.
+        </p>
+      </article>
+
+      <aside class="about-card about-card--accent">
+        <h2>At a glance</h2>
+        <dl class="stats-list">
+          <div><dt>Posts</dt><dd>{posts.length}</dd></div>
+          <div><dt>Tags</dt><dd>{tags.length}</dd></div>
+          <div><dt>Categories</dt><dd>{categories.length}</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section-pad soft-band">
+    <div class="wrap resource-section">
+      <SectionHeader eyebrow="Links" title="Places to find honemik" description="Social links and preserved side-note pages from the source repository." />
+      <div class="resource-grid">
+        {site.social.map((item) => (
+          <a class="resource-card" href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noopener' : undefined}>
+            <strong>{item.label}</strong>
+            <span>{item.href.replace('mailto:', '')}</span>
+          </a>
+        ))}
+        {site.resources.map((item) => (
+          <a class="resource-card" href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noopener' : undefined}>
+            <strong>{item.label}</strong>
+            <span>{item.description}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

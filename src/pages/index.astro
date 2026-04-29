@@ -1,0 +1,150 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EditorialCard from '../components/EditorialCard.astro';
+import VerticalLabel from '../components/VerticalLabel.astro';
+import { site } from '../data/site';
+import { getAllPosts, getTags } from '../utils/posts';
+
+const posts = await getAllPosts();
+const latest = posts.slice(0, 3);
+const featured = posts[3];
+const tags = getTags(posts).slice(0, 8);
+---
+
+<BaseLayout title={site.title} description={site.longDescription}>
+  <!-- Hero Section -->
+  <section class="section-pad wrap">
+    <div class="grid-magazine hero-magazine">
+      
+      <div class="col-span-8 hero-media">
+        <img src="/assets/img/Background/0.jpg" alt="Soft sunlight on tulips" style="width: 100%; height: 100%; object-fit: cover;" />
+      </div>
+      
+      <div class="col-span-4 hero-text">
+        <VerticalLabel text="Featured Story" />
+        <div class="hero-content">
+          <h1 class="hero-title">{featured?.data.title || 'A gentle journey through everyday life.'}</h1>
+          <p class="micro-caption hero-desc">{featured?.data.description || 'Capturing small moments and beautiful things.'}</p>
+          <a href={`/posts/${featured?.slug}/`} class="hero-link font-hand">Read more &rarr;</a>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Divider -->
+  <div class="wrap">
+    <div style="width: 100%; height: 160px; overflow: hidden; border-radius: var(--radius-sm);">
+      <img src="/assets/img/Background/5.jpg" alt="Torii gate in water" style="width: 100%; height: 100%; object-fit: cover; object-position: center 30%;" />
+    </div>
+  </div>
+
+  <!-- Recent Notes Section (Dense) -->
+  <section class="section-pad wrap">
+    <div class="recent-header">
+      <h2 class="section-title">Recent Notes</h2>
+      <p class="micro-caption">Short, handcrafted entries from the archive.</p>
+    </div>
+    
+    <div class="grid-magazine">
+      {latest.map((post, index) => (
+        <div class="col-span-4">
+          <EditorialCard post={post} index={index} />
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Tags / Categories Section (Airy) -->
+  <section class="section-pad wrap soft-band" style="border-radius: var(--radius-lg); padding: 3rem;">
+    <div class="grid-magazine">
+      <div class="col-span-4">
+        <h2 class="section-title">Collections</h2>
+        <p class="micro-caption">Explore by atmosphere and topic.</p>
+      </div>
+      <div class="col-span-8">
+        <div class="term-cloud">
+          {tags.map(([tag, count]) => (
+            <a href={`/tags/${tag.toLowerCase()}/`} class="tag-pill font-hand">
+              {tag} <span>{count}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero-magazine {
+    align-items: center;
+  }
+  
+  .hero-media {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  
+  .hero-text {
+    display: flex;
+    gap: 32px;
+    padding-left: 2rem;
+  }
+  
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .hero-title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1.2;
+    margin: 0 0 1rem 0;
+    font-weight: 500;
+  }
+  
+  .hero-desc {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  
+  .hero-link {
+    font-size: 1.25rem;
+    color: var(--color-wood);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  
+  .recent-header {
+    text-align: center;
+    margin-bottom: var(--spacing-airy);
+  }
+  
+  .section-title {
+    font-size: 2.5rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+  }
+  
+  .tag-pill {
+    padding: 0.75rem 1.25rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: transparent;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+  }
+  
+  .tag-pill:hover {
+    background: var(--color-cream);
+    border-color: var(--color-wood);
+    color: var(--color-wood);
+  }
+  
+  .tag-pill span {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    margin-left: 4px;
+  }
+</style>

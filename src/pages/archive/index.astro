@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import { formatDate, getAllPosts, groupPostsByYear, readingMinutes } from '../../utils/posts';
+
+const posts = await getAllPosts();
+const years = groupPostsByYear(posts);
+---
+
+<BaseLayout title="Archive" description="Chronological archive of honemik blog posts.">
+  <section class="page-hero wrap">
+    <SectionHeader eyebrow="Timeline" title="Archive" description="A date-first view of every migrated post." align="center" />
+  </section>
+
+  <section class="section-pad section-pad--topless">
+    <div class="wrap archive-list">
+      {years.map(([year, entries]) => (
+        <section class="archive-year" aria-labelledby={`year-${year}`}>
+          <h2 id={`year-${year}`}>{year}<span>{entries.length} posts</span></h2>
+          <div class="archive-items">
+            {entries.map((post) => (
+              <a href={`/posts/${post.slug}/`} class="archive-item">
+                <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+                <strong>{post.data.title}</strong>
+                <span>{readingMinutes(post)} min</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

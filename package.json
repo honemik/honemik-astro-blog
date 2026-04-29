@@ -1,0 +1,17 @@
+{
+  "name": "honemik-astro-blog",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "migrate": "node scripts/migrate-source-blog.mjs",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.7.4",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {}
+}

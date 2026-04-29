@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import { getAllPosts, getTags } from '../../utils/posts';
+
+const posts = await getAllPosts();
+const tags = getTags(posts);
+---
+
+<BaseLayout title="Posts" description="All posts migrated from honemik.github.io.">
+  <section class="page-hero wrap">
+    <SectionHeader
+      eyebrow="All writing"
+      title="Posts"
+      description={`${posts.length} notes, logs, reviews, and experiments from the original blog archive.`}
+      align="center"
+    />
+    <div class="term-cloud term-cloud--center">
+      {tags.map(([tag, count]) => <a href={`/tags/${tag.toLowerCase()}/`}>{tag}<span>{count}</span></a>)}
+    </div>
+  </section>
+
+  <section class="section-pad section-pad--topless">
+    <div class="wrap post-grid">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import { formatDate, getAllPosts, getExcerpt } from '../../utils/posts';
+
+const posts = await getAllPosts();
+const searchItems = posts.map((post) => ({
+  title: post.data.title,
+  date: formatDate(post.data.date),
+  description: getExcerpt(post, 180),
+  url: `/posts/${post.slug}/`,
+  tags: post.data.tags,
+  categories: post.data.categories,
+  haystack: `${post.data.title} ${post.data.description} ${post.data.tags.join(' ')} ${post.data.categories.join(' ')} ${post.body}`.toLowerCase()
+}));
+---
+
+<BaseLayout title="Search" description="Search posts from the honemik blog archive.">
+  <section class="page-hero wrap">
+    <SectionHeader eyebrow="Find notes" title="Search" description="Search titles, descriptions, tags, categories, and post bodies." align="center" />
+    <div class="search-box">
+      <label for="site-search">Search posts</label>
+      <input id="site-search" type="search" placeholder="Try Blog, Game, Tiddly, keyboard..." autocomplete="off" data-search-input />
+    </div>
+  </section>
+
+  <section class="section-pad section-pad--topless">
+    <div class="wrap search-results" data-search-results aria-live="polite"></div>
+  </section>
+
+  <script type="application/json" id="search-data" set:html={JSON.stringify(searchItems)}></script>
+  <script>
+    const input = document.querySelector('[data-search-input]');
+    const results = document.querySelector('[data-search-results]');
+    const dataElement = document.getElementById('search-data');
+    const posts = JSON.parse(dataElement?.textContent || '[]');
+
+    function resultTemplate(post) {
+      const terms = [...post.tags, ...post.categories].map((term) => `<span>${term}</span>`).join('');
+      return `
+        <a class="search-result" href="${post.url}">
+          <time>${post.date}</time>
+          <strong>${post.title}</strong>
+          <p>${post.description}</p>
+          <span class="search-result__terms">${terms}</span>
+        </a>
+      `;
+    }
+
+    function render(query = '') {
+      const normalized = query.trim().toLowerCase();
+      const matches = normalized
+        ? posts.filter((post) => post.haystack.includes(normalized))
+        : posts.slice(0, 10);
+
+      if (!results) return;
+      results.innerHTML = matches.length
+        ? matches.map(resultTemplate).join('')
+        : '<p class="empty-state">No posts matched that search.</p>';
+    }
+
+    input?.addEventListener('input', (event) => {
+      render(event.target instanceof HTMLInputElement ? event.target.value : '');
+    });
+
+    render('');
+  </script>
+</BaseLayout>

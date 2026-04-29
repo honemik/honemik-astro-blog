@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import { getAllPosts, getTags } from '../../utils/posts';
+
+const tags = getTags(await getAllPosts());
+---
+
+<BaseLayout title="Tags" description="Tags used across the honemik blog archive.">
+  <section class="page-hero wrap">
+    <SectionHeader eyebrow="Browse" title="Tags" description="Follow a topic trail through the migrated posts." align="center" />
+    <div class="term-cloud term-cloud--large term-cloud--center">
+      {tags.map(([tag, count]) => <a href={`/tags/${tag.toLowerCase()}/`}>{tag}<span>{count}</span></a>)}
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import { getAllPosts, getTags, termSlug } from '../../utils/posts';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  return getTags(posts).map(([tag]) => ({
+    params: { tag: termSlug(tag) },
+    props: { tag }
+  }));
+}
+
+const { tag } = Astro.props;
+const posts = (await getAllPosts()).filter((post) => post.data.tags.some((item) => termSlug(item) === termSlug(tag)));
+---
+
+<BaseLayout title={`Tag: ${tag}`} description={`Posts tagged ${tag}.`}>
+  <section class="page-hero wrap">
+    <SectionHeader eyebrow="Tag" title={tag} description={`${posts.length} posts collected under this tag.`} align="center" />
+  </section>
+  <section class="section-pad section-pad--topless">
+    <div class="wrap post-grid">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+</BaseLayout>

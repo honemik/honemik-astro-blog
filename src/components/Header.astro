@@ -1,0 +1,74 @@
+---
+import { site } from '../data/site';
+
+const pathname = Astro.url.pathname;
+---
+
+<header class="site-header" data-site-header>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label="honemik home">
+      <span class="brand-mark" aria-hidden="true">hm</span>
+      <span class="brand-copy">
+        <span class="brand-kicker">personal notes</span>
+        <strong>{site.title}</strong>
+      </span>
+    </a>
+
+    <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" data-menu-button>
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <nav class="desktop-nav" aria-label="Main navigation">
+      {site.nav.map((item) => {
+        const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+        return (
+          <a href={item.href} class="nav-link" aria-current={isActive ? 'page' : undefined}>
+            <span class="nav-dot" aria-hidden="true"></span>
+            {item.label}
+          </a>
+        );
+      })}
+    </nav>
+  </div>
+
+  <div class="mobile-menu" id="mobile-menu" data-mobile-menu hidden>
+    <nav aria-label="Mobile navigation">
+      {site.nav.map((item) => (
+        <a href={item.href} class="mobile-nav-link">{item.label}</a>
+      ))}
+    </nav>
+    <div class="mobile-social" aria-label="Social links">
+      {site.social.slice(0, 4).map((item) => (
+        <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noopener' : undefined}>
+          {item.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector('[data-site-header]');
+  const button = document.querySelector('[data-menu-button]');
+  const menu = document.querySelector('[data-mobile-menu]');
+
+  button?.addEventListener('click', () => {
+    const isOpen = button.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', String(!isOpen));
+    button.setAttribute('aria-label', isOpen ? 'Open menu' : 'Close menu');
+    header?.classList.toggle('is-menu-open', !isOpen);
+    if (menu instanceof HTMLElement) menu.hidden = isOpen;
+  });
+
+  menu?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      button?.setAttribute('aria-expanded', 'false');
+      button?.setAttribute('aria-label', 'Open menu');
+      header?.classList.remove('is-menu-open');
+      if (menu instanceof HTMLElement) menu.hidden = true;
+    });
+  });
+</script>
