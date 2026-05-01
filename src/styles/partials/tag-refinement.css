@@ -1,0 +1,310 @@
+/* Editorial tag index refinement. */
+.post-topic-index {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  max-width: 880px;
+  margin: 32px auto 0;
+  padding: 18px 0;
+  border-top: var(--border-hairline);
+  border-bottom: var(--border-hairline);
+  text-align: left;
+}
+
+.post-topic-index__label {
+  color: var(--color-wood);
+  font-family: var(--font-serif);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.post-topic-index__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.post-topic-chip {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  gap: 8px;
+  align-items: baseline;
+  min-height: 30px;
+  padding: 2px 0 5px;
+  color: var(--color-ink);
+}
+
+.post-topic-chip::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--color-wood);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--motion-line);
+}
+
+.post-topic-chip span {
+  color: var(--color-wood);
+  font-family: var(--font-serif);
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+}
+
+.post-topic-chip strong {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.post-topic-chip small {
+  color: var(--color-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.post-topic-chip:hover,
+.post-topic-chip:focus-visible {
+  color: var(--color-wood);
+}
+
+.post-topic-chip:hover::after,
+.post-topic-chip:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.tag-index-hero {
+  padding-bottom: clamp(58px, 8vw, 96px);
+}
+
+.tag-index-panel {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  max-width: 930px;
+  margin: 38px auto 0;
+  border-top: var(--border-hairline);
+  border-bottom: var(--border-hairline);
+}
+
+.tag-index-panel__rail {
+  display: grid;
+  place-items: center;
+  gap: 14px;
+  min-height: 190px;
+  padding: 22px 14px;
+  border-right: var(--border-hairline);
+}
+
+.tag-index-panel__rail span {
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  writing-mode: vertical-rl;
+}
+
+.tag-index-panel__rail small {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+}
+
+.tag-term-grid {
+  max-width: none;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tag-term {
+  align-content: space-between;
+  min-height: 190px;
+  padding: 28px;
+  border-left: 1px solid transparent;
+  background:
+    linear-gradient(var(--line-hairline), var(--line-hairline)) left top / 1px 100% no-repeat,
+    transparent;
+}
+
+.tag-term:first-child {
+  background: transparent;
+}
+
+.tag-term:hover,
+.tag-term:focus-visible {
+  background:
+    linear-gradient(var(--line-hairline), var(--line-hairline)) left top / 1px 100% no-repeat,
+    rgba(255, 253, 247, 0.68);
+}
+
+.tag-term:first-child:hover,
+.tag-term:first-child:focus-visible {
+  background: rgba(255, 253, 247, 0.68);
+}
+
+.tag-term strong {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.12;
+}
+
+.tag-term small {
+  width: fit-content;
+  padding-top: 10px;
+  border-top: var(--border-hairline);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag-detail-hero {
+  display: grid;
+  justify-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.tag-back-link {
+  position: relative;
+  width: fit-content;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag-back-link::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -4px;
+  left: 0;
+  height: 1px;
+  background: var(--color-wood);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--motion-line);
+}
+
+.tag-back-link:hover,
+.tag-back-link:focus-visible {
+  color: var(--color-wood);
+}
+
+.tag-back-link:hover::after,
+.tag-back-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.tag-detail-mast {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+}
+
+.tag-detail-mast h1 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(4rem, 12vw, 8.5rem);
+  font-weight: 500;
+  line-height: 0.92;
+}
+
+.tag-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  justify-content: center;
+  padding: 13px 0;
+  border-top: var(--border-hairline);
+  border-bottom: var(--border-hairline);
+  color: var(--color-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tag-detail-meta span + span {
+  position: relative;
+}
+
+.tag-detail-meta span + span::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -14px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--line-hairline);
+  transform: translateY(-50%);
+}
+
+@media (max-width: 820px) {
+  .post-topic-index,
+  .tag-index-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .post-topic-index {
+    gap: 14px;
+    margin-top: 26px;
+  }
+
+  .post-topic-index__items {
+    gap: 8px 18px;
+  }
+
+  .tag-index-panel__rail {
+    min-height: auto;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    border-right: 0;
+    border-bottom: var(--border-hairline);
+  }
+
+  .tag-index-panel__rail span,
+  .tag-index-panel__rail small {
+    writing-mode: horizontal-tb;
+  }
+
+  .tag-term-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tag-term,
+  .tag-term:first-child {
+    min-height: 132px;
+    background: transparent;
+    border-bottom: var(--border-hairline);
+  }
+
+  .tag-term:last-child {
+    border-bottom: 0;
+  }
+
+  .tag-term:hover,
+  .tag-term:focus-visible,
+  .tag-term:first-child:hover,
+  .tag-term:first-child:focus-visible {
+    background: rgba(255, 253, 247, 0.68);
+  }
+
+  .tag-detail-mast h1 {
+    font-size: clamp(3.5rem, 22vw, 5.4rem);
+  }
+}

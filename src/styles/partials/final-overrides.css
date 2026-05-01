@@ -1,0 +1,320 @@
+/* True final overrides for the quiet reference pass. */
+body {
+  background: var(--color-cream);
+  background-image: none;
+  background-size: auto;
+}
+
+.brand-mark--image {
+  overflow: hidden;
+  padding: 0;
+  background: #050505;
+}
+
+.brand-mark--image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.quiet-cover {
+  isolation: isolate;
+  overflow: hidden;
+  grid-template-columns: minmax(320px, 0.78fr) minmax(460px, 1.16fr);
+  min-height: clamp(620px, calc(100svh - 112px), 780px);
+  background: var(--color-cream);
+  border-bottom: 0;
+}
+
+.quiet-cover::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  height: 1px;
+  background: var(--quiet-line);
+}
+
+.quiet-cover__copy {
+  position: relative;
+  z-index: 2;
+}
+
+.quiet-cover__media {
+  position: absolute;
+  z-index: 1;
+  top: clamp(72px, 13vh, 150px);
+  right: 0;
+  bottom: -30%;
+  width: min(58vw, 680px);
+  margin: 0;
+  opacity: 0.82;
+  transform: translate3d(0, var(--hero-parallax-y, 0px), 0);
+  transition: opacity 260ms ease, filter 260ms ease;
+  will-change: transform;
+}
+
+.quiet-cover__media.is-switching {
+  opacity: 0.22;
+  filter: blur(3px);
+}
+
+.quiet-cover__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-editorial);
+}
+
+.quiet-cover__copy h1 {
+  font-size: clamp(3.8rem, 7vw, 6.4rem);
+  line-height: 1;
+}
+
+.quiet-cover__title {
+  max-width: min(86vw, 620px);
+}
+
+.hero-word {
+  position: relative;
+  display: block;
+  width: min(86vw, 620px);
+  height: clamp(78px, 10vw, 118px);
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  color: var(--color-ink);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hero-word .word {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-items: center;
+  justify-items: start;
+  white-space: nowrap;
+  will-change: clip-path, opacity, transform, filter;
+  transition:
+    clip-path 780ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 560ms ease,
+    transform 780ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 560ms ease;
+}
+
+.hero-word .word-en {
+  font-family: var(--font-serif);
+  font-size: clamp(3.8rem, 7vw, 6.4rem);
+  font-weight: 500;
+  clip-path: inset(0 0 0 0);
+}
+
+.hero-word .word-zh {
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: clamp(3.05rem, 6vw, 5.4rem);
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  opacity: 0;
+  transform: translateX(-8px);
+  filter: blur(1px);
+  clip-path: inset(0 100% 0 0);
+}
+
+.hero-word::after {
+  content: "";
+  position: absolute;
+  top: 14%;
+  bottom: 14%;
+  left: -8%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(40, 39, 36, 0.38), transparent);
+  opacity: 0;
+  transition:
+    left 760ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+
+.hero-word:hover .word-en,
+.hero-word:focus-visible .word-en {
+  opacity: 0;
+  transform: translateX(10px);
+  filter: blur(2px);
+  clip-path: inset(0 0 0 100%);
+}
+
+.hero-word:hover .word-zh,
+.hero-word:focus-visible .word-zh {
+  opacity: 1;
+  transform: translateX(0);
+  filter: blur(0);
+  clip-path: inset(0 0 0 0);
+}
+
+.hero-word:hover::after,
+.hero-word:focus-visible::after {
+  left: 108%;
+  opacity: 1;
+}
+
+.hero-word:focus-visible {
+  outline: 1px solid var(--color-wood);
+  outline-offset: 8px;
+}
+
+.quiet-cover__subtitles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 30px;
+  align-items: center;
+}
+
+.hand-subtitle {
+  display: inline-flex;
+  width: fit-content;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(140, 110, 80, 0.38);
+  color: var(--color-wood);
+  font-family: var(--font-hand);
+  font-size: clamp(1.35rem, 2vw, 1.85rem);
+  line-height: 1.2;
+  transition: color var(--quiet-motion), border-color var(--quiet-motion), transform var(--quiet-motion);
+}
+
+.hand-subtitle:hover {
+  border-color: var(--color-wood);
+  color: var(--color-ink);
+  transform: translateY(-2px);
+}
+
+.zh-thin,
+.quiet-note strong,
+.quiet-note p {
+  font-family: var(--font-sans);
+  font-weight: 300;
+}
+
+.nav-link {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: color var(--quiet-motion), background var(--quiet-motion), border-color var(--quiet-motion);
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  left: 12px;
+  height: 1px;
+  background: var(--color-wood);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  color: var(--color-ink);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.nav-link:hover::after,
+.nav-link:focus-visible::after,
+.nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+.nav-link[aria-current="page"] {
+  background: transparent;
+  box-shadow: none;
+}
+
+.quiet-resource small,
+.quiet-search-row p,
+.quiet-search-row__terms {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 920px) {
+  .quiet-cover {
+    overflow: hidden;
+  }
+
+  .quiet-cover::after {
+    bottom: 0;
+  }
+
+  .quiet-cover__media {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    transform: none;
+  }
+
+}
+
+@media (max-width: 680px) {
+  .quiet-cover__copy h1,
+  .quiet-profile__copy h1,
+  .quiet-search__intro h1 {
+    font-size: clamp(3.25rem, 18vw, 4.8rem);
+  }
+
+  .hero-word {
+    height: clamp(72px, 20vw, 96px);
+  }
+
+  .hero-word .word-en {
+    font-size: clamp(3.25rem, 18vw, 4.8rem);
+  }
+
+  .hero-word .word-zh {
+    font-size: clamp(2.5rem, 14vw, 4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiet-cover__media {
+    transform: none;
+    transition: none;
+  }
+
+  .hero-word .word,
+  .hero-word::after,
+  .nav-link,
+  .nav-link::after {
+    transition: none;
+  }
+}
+
+.reveal-image {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-image.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-image {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}

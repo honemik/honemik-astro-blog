@@ -145,11 +145,11 @@ const browseItems = [
       document.documentElement.style.setProperty('--issue-thread', issuePalette[index % issuePalette.length]);
     }
 
-    function setHeroImage(nextImage, options = {}) {
+    function setHeroImage(nextImage) {
       if (!(heroImage instanceof HTMLImageElement) || !nextImage || nextImage === currentImage) return;
-      const delay = options.immediate || reducedMotion.matches ? 0 : 160;
+      const delay = reducedMotion.matches ? 0 : 160;
       currentImage = nextImage;
-      updateCoverFolio(nextImage, !options.immediate);
+      updateCoverFolio(nextImage);
       heroMedia?.classList.add('is-switching');
       window.setTimeout(() => {
         heroImage.src = nextImage;

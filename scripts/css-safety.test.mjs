@@ -3,9 +3,37 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const cssPath = new URL('../src/styles/global.css', import.meta.url);
+const expectedImportManifest = [
+  './partials/base.css',
+  './partials/quiet-reference.css',
+  './partials/editorial.css',
+  './partials/final-overrides.css',
+  './partials/motion.css',
+  './partials/tag-refinement.css',
+  './partials/micro-interactions.css'
+];
+
+async function readCssFile(fileUrl, seen = new Set()) {
+  assert.equal(seen.has(fileUrl.href), false, `CSS import cycle detected for ${fileUrl.href}`);
+  seen.add(fileUrl.href);
+
+  const css = await readFile(fileUrl, 'utf8');
+  const importPattern = /^@import\s+['"](.+?)['"];\s*$/gm;
+  let resolvedCss = css;
+
+  for (const match of [...css.matchAll(importPattern)]) {
+    const importPath = match[1];
+    assert.equal(importPath.startsWith('.'), true, `CSS imports should stay local: ${importPath}`);
+    const importedCss = await readCssFile(new URL(importPath, fileUrl), seen);
+    resolvedCss = resolvedCss.replace(match[0], importedCss);
+  }
+
+  seen.delete(fileUrl.href);
+  return resolvedCss;
+}
 
 async function readCss() {
-  return readFile(cssPath, 'utf8');
+  return readCssFile(cssPath);
 }
 
 function mediaBlocks(css, query) {
@@ -49,6 +77,15 @@ test('global CSS has balanced braces and no merge conflict markers', async () =>
   assert.equal(balance, 0, 'CSS should have balanced braces');
   assert.equal(css.includes('<<<<<<<'), false, 'CSS should not contain merge conflict markers');
   assert.equal(css.includes('>>>>>>>'), false, 'CSS should not contain merge conflict markers');
+});
+
+test('global CSS remains a conservative import manifest', async () => {
+  const css = await readFile(cssPath, 'utf8');
+  const imports = [...css.matchAll(/^@import\s+['"](.+?)['"];\s*$/gm)].map((match) => match[1]);
+  const nonImportCss = css.replace(/^@import\s+['"].+?['"];\s*$/gm, '').trim();
+
+  assert.deepEqual(imports, expectedImportManifest);
+  assert.equal(nonImportCss, '', 'global.css should only coordinate ordered partial imports');
 });
 
 test('footer social responsive column rule is not duplicated', async () => {
@@ -97,4 +134,58 @@ test('consolidated reduced-motion protections remain present', async () => {
     reducedMotionBlocks.some((block) => block.includes('.post-topic-chip::after') && block.includes('.tag-back-link::after') && block.includes('transition: none')),
     'tag underline motion should still disable transitions for reduced motion'
   );
+});
+
+test('shared PR3 design tokens replace repeated literal values', async () => {
+  const css = await readCss();
+
+  assert.match(css, /--border-hairline:\s*1px solid var\(--line-hairline\);/);
+  assert.match(css, /--motion-line:\s*320ms var\(--ease-editorial\);/);
+
+  const oldHairlineBorders = css.match(/border(?:-(?:top|right|bottom|left|block|inline))?:\s*1px solid var\(--line-hairline\);/g) ?? [];
+  assert.deepEqual(oldHairlineBorders, [], 'hairline borders should use --border-hairline');
+
+  const oldLineMotion = css.match(/transition:\s*transform 320ms var\(--ease-editorial\);/g) ?? [];
+  assert.deepEqual(oldLineMotion, [], 'line transform transitions should use --motion-line');
+});
+
+test('confirmed PR5 dead selectors stay removed', async () => {
+  const css = await readCss();
+  const cssWithoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const removedSelectors = [
+    'hero-grid',
+    'hero-copy',
+    'hero-actions',
+    'btn',
+    'btn-primary',
+    'btn-secondary',
+    'hero-panel',
+    'today-card',
+    'latest-note',
+    'hero-stats',
+    'term-cloud',
+    'post-grid',
+    'resource-card',
+    'resource-grid',
+    'archive-list',
+    'about-grid',
+    'article-hero',
+    'article-title-card',
+    'article-layout',
+    'search-box',
+    'search-result__terms',
+    'issue-strip',
+    'latest-stack',
+    'editorial-index-grid',
+    'field-error-note',
+    'form-annotation'
+  ];
+
+  for (const selector of removedSelectors) {
+    assert.equal(
+      new RegExp(`\\.${selector.replaceAll('-', '\\-')}(?![\\w-])`).test(cssWithoutComments),
+      false,
+      `${selector} should remain removed`
+    );
+  }
 });

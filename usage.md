@@ -64,4 +64,4 @@ npm run dev
 Then, open your browser and go to `http://localhost:4321/`.
 
 ### Updating the Homepage Thumbnails
-The recent posts on the homepage (`index.astro`) automatically grab thumbnail images dynamically. If you want to change the pool of images it pulls from, place new square/portrait photos into **`public/assets/img/Background/`** and update the `imageMap` array inside `src/components/EditorialCard.astro`.
+The homepage cover image is chosen dynamically from **`public/assets/img/Background/`**. If you want to change the pool of cover images, add or remove image files in that folder.
