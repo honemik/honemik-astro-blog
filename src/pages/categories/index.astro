@@ -1,16 +1,22 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
-import { getAllPosts, getCategories } from '../../utils/posts';
+import { getAllPosts, getCategories, termSlug } from '../../utils/posts';
 
 const categories = getCategories(await getAllPosts());
 ---
 
 <BaseLayout title="Categories" description="Categories used across the honemik blog archive.">
-  <section class="page-hero wrap">
+  <section class="page-hero wrap page-hero--editorial">
     <SectionHeader eyebrow="Browse" title="Categories" description="The source blog used categories sparingly; preserved here when available." align="center" />
-    <div class="term-cloud term-cloud--large term-cloud--center">
-      {categories.map(([category, count]) => <a href={`/categories/${category.toLowerCase()}/`}>{category}<span>{count}</span></a>)}
+    <div class="department-term-grid">
+      {categories.map(([category, count], index) => (
+        <a class="department-term" href={`/categories/${termSlug(category)}/`}>
+          <span>{String(index + 1).padStart(2, '0')}</span>
+          <strong>{category}</strong>
+          <small>{count} posts</small>
+        </a>
+      ))}
     </div>
   </section>
 </BaseLayout>

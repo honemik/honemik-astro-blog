@@ -1,150 +1,214 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import EditorialCard from '../components/EditorialCard.astro';
-import VerticalLabel from '../components/VerticalLabel.astro';
 import { site } from '../data/site';
-import { getAllPosts, getTags } from '../utils/posts';
+import { formatDate, getAllPosts, getExcerpt, readingMinutes } from '../utils/posts';
+import { readdirSync } from 'node:fs';
 
 const posts = await getAllPosts();
-const latest = posts.slice(0, 3);
-const featured = posts[3];
-const tags = getTags(posts).slice(0, 8);
+const featured = posts.find((post) => post.data.title.includes('CMS')) ?? posts[0];
+const latest = posts.filter((post) => post.slug !== featured?.slug).slice(0, 3);
+const backgroundImages = readdirSync(new URL('../../public/assets/img/Background/', import.meta.url))
+  .filter((file) => /\.(?:avif|jpe?g|png|webp)$/i.test(file))
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  .map((file) => `/assets/img/Background/${file}`);
+const fallbackHeroImage = backgroundImages.includes('/assets/img/Background/6.jpg')
+  ? '/assets/img/Background/6.jpg'
+  : backgroundImages[0];
+
+const browseItems = [
+  {
+    number: '01',
+    title: 'Posts',
+    description: 'Recent notes, projects, and study fragments.',
+    href: '/posts/'
+  },
+  {
+    number: '02',
+    title: 'Archive',
+    description: 'A chronological index for slower browsing.',
+    href: '/archive/'
+  },
+  {
+    number: '03',
+    title: 'Tags',
+    description: 'Small topic paths through the notebook.',
+    href: '/tags/'
+  }
+];
 ---
 
 <BaseLayout title={site.title} description={site.longDescription}>
-  <!-- Hero Section -->
-  <section class="section-pad wrap">
-    <div class="grid-magazine hero-magazine">
-      
-      <div class="col-span-8 hero-media">
-        <img src="/assets/img/Background/0.jpg" alt="Soft sunlight on tulips" style="width: 100%; height: 100%; object-fit: cover;" />
+  <section class="quiet-cover wrap" aria-labelledby="cover-title">
+    <figure class="quiet-cover__media" data-hero-media>
+      <img
+        src={fallbackHeroImage}
+        alt="Layered seasonal cover image"
+        data-hero-image
+        decoding="async"
+        fetchpriority="high"
+      />
+    </figure>
+    <span class="cover-change-folio" aria-hidden="true" data-cover-folio>01</span>
+
+    <div class="quiet-cover__copy">
+      <h1 id="cover-title" class="quiet-cover__title">
+        <button class="hero-word" type="button" aria-label="Switch cover image" data-hero-title>
+          <span class="word word-en">honemik</span>
+          <span class="word word-zh">蜂蜜牛奶</span>
+        </button>
+      </h1>
+      <div class="quiet-cover__subtitles" aria-label="Primary homepage links">
+        {featured && <a class="hand-subtitle" href={`/posts/${featured.slug}/`}>最近的一頁</a>}
+        <a class="hand-subtitle" href="/archive/">慢慢翻閱</a>
       </div>
-      
-      <div class="col-span-4 hero-text">
-        <VerticalLabel text="Featured Story" />
-        <div class="hero-content">
-          <h1 class="hero-title">{featured?.data.title || 'A gentle journey through everyday life.'}</h1>
-          <p class="micro-caption hero-desc">{featured?.data.description || 'Capturing small moments and beautiful things.'}</p>
-          <a href={`/posts/${featured?.slug}/`} class="hero-link font-hand">Read more &rarr;</a>
-        </div>
-      </div>
-      
     </div>
   </section>
 
-  <!-- Divider -->
-  <div class="wrap">
-    <div style="width: 100%; height: 160px; overflow: hidden; border-radius: var(--radius-sm);">
-      <img src="/assets/img/Background/5.jpg" alt="Torii gate in water" style="width: 100%; height: 100%; object-fit: cover; object-position: center 30%;" />
-    </div>
-  </div>
+  <section class="quiet-section quiet-latest wrap" aria-labelledby="latest-title">
+    <header class="quiet-section__head">
+      <div>
+        <p class="kicker">LATEST NOTES</p>
+        <h2 id="latest-title">Recent entries</h2>
+      </div>
+      <a class="quiet-link" href="/posts/">All posts</a>
+    </header>
 
-  <!-- Recent Notes Section (Dense) -->
-  <section class="section-pad wrap">
-    <div class="recent-header">
-      <h2 class="section-title">Recent Notes</h2>
-      <p class="micro-caption">Short, handcrafted entries from the archive.</p>
-    </div>
-    
-    <div class="grid-magazine">
+    <div class="quiet-note-list">
       {latest.map((post, index) => (
-        <div class="col-span-4">
-          <EditorialCard post={post} index={index} />
-        </div>
+        <a class:list={['quiet-note', index === 0 && 'quiet-note--lead']} href={`/posts/${post.slug}/`}>
+          <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+          <div>
+            <strong>{post.data.title}</strong>
+            {index === 0 && <p>{post.data.description || getExcerpt(post, 92)}</p>}
+          </div>
+          <span>{post.data.categories[0] ?? `${readingMinutes(post)} min`}</span>
+        </a>
       ))}
     </div>
   </section>
 
-  <!-- Tags / Categories Section (Airy) -->
-  <section class="section-pad wrap soft-band" style="border-radius: var(--radius-lg); padding: 3rem;">
-    <div class="grid-magazine">
-      <div class="col-span-4">
-        <h2 class="section-title">Collections</h2>
-        <p class="micro-caption">Explore by atmosphere and topic.</p>
+  <section class="quiet-section quiet-doorway wrap" aria-labelledby="browse-title">
+    <figure class="quiet-doorway__media" aria-hidden="true" data-browse-media>
+      <img src="/assets/img/Background/3.jpg" alt="" loading="lazy" />
+    </figure>
+    <header class="quiet-section__head quiet-section__head--center" data-browse-header>
+      <div>
+        <p class="kicker">BROWSE</p>
+        <h2 id="browse-title" class="zh-thin">沉入。</h2>
       </div>
-      <div class="col-span-8">
-        <div class="term-cloud">
-          {tags.map(([tag, count]) => (
-            <a href={`/tags/${tag.toLowerCase()}/`} class="tag-pill font-hand">
-              {tag} <span>{count}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
-  </section>
-</BaseLayout>
+    </header>
 
-<style>
-  .hero-magazine {
-    align-items: center;
-  }
-  
-  .hero-media {
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-  
-  .hero-text {
-    display: flex;
-    gap: 32px;
-    padding-left: 2rem;
-  }
-  
-  .hero-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  
-  .hero-title {
-    font-size: clamp(2rem, 4vw, 3.5rem);
-    line-height: 1.2;
-    margin: 0 0 1rem 0;
-    font-weight: 500;
-  }
-  
-  .hero-desc {
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-  }
-  
-  .hero-link {
-    font-size: 1.25rem;
-    color: var(--color-wood);
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-  
-  .recent-header {
-    text-align: center;
-    margin-bottom: var(--spacing-airy);
-  }
-  
-  .section-title {
-    font-size: 2.5rem;
-    margin: 0 0 0.5rem 0;
-    font-weight: 500;
-  }
-  
-  .tag-pill {
-    padding: 0.75rem 1.25rem;
-    border: 1px solid var(--color-line);
-    border-radius: 999px;
-    background: transparent;
-    font-size: 1.1rem;
-    transition: all 0.2s ease;
-  }
-  
-  .tag-pill:hover {
-    background: var(--color-cream);
-    border-color: var(--color-wood);
-    color: var(--color-wood);
-  }
-  
-  .tag-pill span {
-    color: var(--color-muted);
-    font-size: 0.9rem;
-    margin-left: 4px;
-  }
-</style>
+    <nav class="quiet-doorway__list" aria-label="Browse the site">
+      {browseItems.map((item) => (
+        <a class="quiet-doorway__item" href={item.href}>
+          <span>{item.number}</span>
+          <strong>{item.title}</strong>
+          <small>{item.description}</small>
+        </a>
+      ))}
+    </nav>
+  </section>
+
+  <script type="application/json" id="hero-backgrounds" set:html={JSON.stringify(backgroundImages)}></script>
+  <script>
+    const dataElement = document.getElementById('hero-backgrounds');
+    const heroImages = JSON.parse(dataElement?.textContent || '[]');
+    const heroMedia = document.querySelector('[data-hero-media]');
+    const heroImage = document.querySelector('[data-hero-image]');
+    const heroTitle = document.querySelector('[data-hero-title]');
+    const coverFolio = document.querySelector('[data-cover-folio]');
+    const browseMedia = document.querySelector('[data-browse-media]');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const issuePalette = ['#b88655', '#7b9b82', '#8a9ebd', '#c48686', '#aa945f'];
+    let currentImage = heroImage instanceof HTMLImageElement ? heroImage.getAttribute('src') : '';
+    let ticking = false;
+    let folioTimer;
+
+    function pickImage() {
+      if (!heroImages.length) return currentImage;
+      const pool = heroImages.length > 1 ? heroImages.filter((image) => image !== currentImage) : heroImages;
+      return pool[Math.floor(Math.random() * pool.length)] ?? heroImages[0];
+    }
+
+    function updateCoverFolio(nextImage, pulse = true) {
+      const index = Math.max(0, heroImages.indexOf(nextImage));
+      const label = String(index + 1).padStart(2, '0');
+      if (coverFolio) {
+        coverFolio.textContent = label;
+        if (pulse && !reducedMotion.matches) {
+          coverFolio.classList.remove('is-pulsing');
+          window.clearTimeout(folioTimer);
+          requestAnimationFrame(() => coverFolio.classList.add('is-pulsing'));
+          folioTimer = window.setTimeout(() => coverFolio.classList.remove('is-pulsing'), 520);
+        }
+      }
+      document.documentElement.style.setProperty('--issue-thread', issuePalette[index % issuePalette.length]);
+    }
+
+    function setHeroImage(nextImage, options = {}) {
+      if (!(heroImage instanceof HTMLImageElement) || !nextImage || nextImage === currentImage) return;
+      const delay = options.immediate || reducedMotion.matches ? 0 : 160;
+      currentImage = nextImage;
+      updateCoverFolio(nextImage, !options.immediate);
+      heroMedia?.classList.add('is-switching');
+      window.setTimeout(() => {
+        heroImage.src = nextImage;
+        const decoded = heroImage.decode ? heroImage.decode().catch(() => undefined) : Promise.resolve();
+        decoded.finally(() => {
+          heroMedia?.classList.remove('is-switching');
+        });
+      }, delay);
+    }
+
+    function updateParallax() {
+      ticking = false;
+      if (heroMedia instanceof HTMLElement && !reducedMotion.matches) {
+        const rect = heroMedia.parentElement?.getBoundingClientRect();
+        if (rect) {
+          const factor = window.innerWidth < 921 ? 0.15 : 0.35;
+          const shift = Math.max(0, -rect.top * factor);
+          heroMedia.style.setProperty('--hero-parallax-y', `${shift}px`);
+        }
+      } else {
+        heroMedia?.style.setProperty('--hero-parallax-y', '0px');
+      }
+
+      if (browseMedia instanceof HTMLElement && !reducedMotion.matches) {
+        const rect = browseMedia.parentElement?.getBoundingClientRect();
+        if (rect) {
+          const shift = -rect.top * 0.4;
+          browseMedia.style.setProperty('--browse-parallax-y', `${shift}px`);
+        }
+      } else {
+        browseMedia?.style.setProperty('--browse-parallax-y', '0px');
+      }
+    }
+
+    function requestParallax() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateParallax);
+    }
+
+    const initialImage = pickImage();
+    if (heroImage instanceof HTMLImageElement && initialImage) {
+      currentImage = initialImage;
+      heroImage.src = initialImage;
+    }
+    updateCoverFolio(currentImage, false);
+    (heroImage instanceof HTMLImageElement && heroImage.decode
+      ? heroImage.decode().catch(() => {})
+      : Promise.resolve()
+    ).finally(() => heroMedia?.classList.add('is-ready'));
+    
+    const browseImage = browseMedia?.querySelector('img');
+    if (browseImage instanceof HTMLImageElement && heroImages.length > 0) {
+      browseImage.src = pickImage();
+    }
+
+    updateParallax();
+    window.addEventListener('scroll', requestParallax, { passive: true });
+    window.addEventListener('resize', requestParallax);
+    heroTitle?.addEventListener('click', () => setHeroImage(pickImage()));
+  </script>
+</BaseLayout>

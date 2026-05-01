@@ -2,9 +2,9 @@
 import { site } from '../data/site';
 ---
 
-<footer class="site-footer">
+<footer class="site-footer footer-index">
   <a class="page-top-link" href="#main-content" aria-label="Back to page top">Page<br />Top</a>
-  <div class="wrap footer-layout">
+  <div class="wrap footer-layout footer-layout--editorial">
     <div class="footer-brand">
       <span class="brand-mark" aria-hidden="true">hm</span>
       <span>
@@ -17,7 +17,8 @@ import { site } from '../data/site';
       {site.nav.map((item) => <a href={item.href}>{item.label}</a>)}
     </nav>
 
-    <div class="footer-links">
+    <div class="footer-links footer-resource-list">
+      <p class="kicker">RESOURCES</p>
       {site.resources.map((item) => (
         <a href={item.href} class="external-block" target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noopener' : undefined}>
           <strong>{item.label}</strong>

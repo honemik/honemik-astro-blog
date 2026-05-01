@@ -1,5 +1,5 @@
 ---
-import { formatDate, getPostCover, readingMinutes, type BlogPost } from '../utils/posts';
+import { formatDate, getPostCover, readingMinutes, termSlug, type BlogPost } from '../utils/posts';
 
 interface Props {
   post: BlogPost;
@@ -11,45 +11,71 @@ interface Props {
 const { post, headings = [], newer, older } = Astro.props;
 const cover = getPostCover(post);
 const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const primaryTerm = post.data.categories[0] ?? post.data.tags[0] ?? 'Note';
+const transitionName = `post-cover-${post.slug.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 ---
 
 <article class="article-page">
-  <header class="article-hero wrap">
-    <a class="back-link font-hand" href="/posts/">&larr; Back to all posts</a>
-    <div class="article-title-card" style="border-radius: var(--radius-lg); padding: 3rem 2rem; text-align: center; background: var(--color-paper); box-shadow: var(--shadow-soft);">
-      <div class="post-meta font-hand" style="justify-content: center; font-size: 1.2rem; color: var(--color-wood);">
+  <header class="article-editorial-hero wrap">
+    <div class="article-action-row">
+      <a class="back-link" href="/posts/">Back to all posts</a>
+      <button class="copy-link-button" type="button" data-copy-link data-copy-url={Astro.url.href} aria-live="polite">
+        <span data-copy-label>Copy link</span>
+      </button>
+    </div>
+    <div class="article-kicker-row">
+      <p class="kicker">{primaryTerm}</p>
+      <div class="meta-row">
         <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
-        <span>&middot;</span>
         <span>{readingMinutes(post)} min read</span>
       </div>
-      <h1 style="margin-top: 1rem; font-size: clamp(2rem, 5vw, 3rem);">{post.data.title}</h1>
-      {post.data.description && <p class="micro-caption" style="margin-top: 1rem;">{post.data.description}</p>}
-      <div class="term-list" style="justify-content: center; margin-top: 2rem;">
-        {post.data.tags.map((tag) => <a href={`/tags/${tag.toLowerCase()}/`}>{tag}</a>)}
-        {post.data.categories.map((category) => <a href={`/categories/${category.toLowerCase()}/`}>{category}</a>)}
-      </div>
     </div>
+    <h1>{post.data.title}</h1>
+    {post.data.description && <p class="article-deck">{post.data.description}</p>}
     {cover && (
-      <figure class="article-cover">
+      <figure class="article-cover" style={`--post-transition-name: ${transitionName};`}>
         <img src={cover} alt="" loading="lazy" />
+        <figcaption class="caption">Image from the original honemik archive, preserved as part of this note.</figcaption>
       </figure>
     )}
   </header>
 
-  <div class="article-layout wrap">
-    {tocHeadings.length > 0 && (
-      <aside class="article-toc" aria-label="Table of contents">
-        <strong>Contents</strong>
-        <nav>
-          {tocHeadings.map((heading) => (
-            <a class={`toc-depth-${heading.depth}`} href={`#${heading.slug}`}>{heading.text}</a>
-          ))}
-        </nav>
-      </aside>
-    )}
+  <div class="article-editorial-layout wrap">
+    <aside class="article-side-rail" aria-label="Article metadata">
+      <div class="article-progress" aria-hidden="true">
+        <span data-article-progress></span>
+      </div>
 
-    <div class="article-content prose">
-      <slot />
+      <section>
+        <p class="kicker">PUBLISHED</p>
+        <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+      </section>
+
+      <section>
+        <p class="kicker">TAGS</p>
+        <div class="side-term-list">
+          {post.data.categories.map((category) => <a href={`/categories/${termSlug(category)}/`}>{category}</a>)}
+          {post.data.tags.map((tag) => <a href={`/tags/${termSlug(tag)}/`}>{tag}</a>)}
+        </div>
+      </section>
+
+      {tocHeadings.length > 0 && (
+        <section class="article-toc" aria-label="Table of contents">
+          <p class="kicker">CONTENTS</p>
+          <nav>
+            {tocHeadings.map((heading) => (
+              <a class={`toc-depth-${heading.depth}`} href={`#${heading.slug}`} data-toc-link>{heading.text}</a>
+            ))}
+          </nav>
+        </section>
+      )}
+
+    </aside>
+
+    <div class="article-content-shell">
+      <div class="article-content prose" data-article-body>
+        <slot />
+      </div>
     </div>
   </div>
 
@@ -68,3 +94,29 @@ const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.
     ) : <span></span>}
   </nav>
 </article>
+
+<script>
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px 0px -10% 0px',
+    threshold: 0
+  };
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.article-content img').forEach(img => {
+    img.classList.add('reveal-image');
+    if (img.complete) {
+      observer.observe(img);
+    } else {
+      img.addEventListener('load', () => observer.observe(img));
+    }
+  });
+</script>

@@ -8,12 +8,16 @@ interface Props {
 
 const { post, featured = false } = Astro.props;
 const cover = getPostCover(post);
+const transitionName = `post-cover-${post.slug.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 ---
 
 <article class={`post-card ${featured ? 'post-card--featured' : ''}`}>
-  <a class="post-card__media" href={`/posts/${post.slug}/`} aria-label={`Read ${post.data.title}`}>
+  <a class="post-card__media" href={`/posts/${post.slug}/`} aria-label={`Read ${post.data.title}`} style={`--post-transition-name: ${transitionName};`}>
     {cover ? (
-      <img src={cover} alt="" loading="lazy" />
+      <>
+        <img src={cover} alt="" loading="lazy" />
+        <img class="post-card__media-ghost" src={cover} alt="" aria-hidden="true" loading="lazy" />
+      </>
     ) : (
       <span class="post-card__placeholder" aria-hidden="true">
         <span>{post.data.tags[0] ?? 'note'}</span>

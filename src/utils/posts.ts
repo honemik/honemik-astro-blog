@@ -2,9 +2,15 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 
 export type BlogPost = CollectionEntry<'posts'>;
 
+let postsCache: BlogPost[] | undefined;
+
 export async function getAllPosts() {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
-  return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  if (import.meta.env.DEV || !postsCache) {
+    postsCache = (await getCollection('posts', ({ data }) => !data.draft))
+      .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  }
+
+  return [...postsCache];
 }
 
 export function formatDate(date: Date) {
@@ -16,11 +22,10 @@ export function formatDate(date: Date) {
 }
 
 export function readingMinutes(post: BlogPost) {
-  const plain = post.body
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
-    .replace(/\[[^\]]*]\([^)]*\)/g, ' ')
-    .replace(/[>#*_`~\-]/g, ' ');
+  const plain = markdownToPlainText(post.body, {
+    linkPattern: /\[[^\]]*]\([^)]*\)/g,
+    markPattern: /[>#*_`~\-]/g
+  });
   const latinWords = plain.match(/[A-Za-z0-9]+/g)?.length ?? 0;
   const cjkChars = plain.match(/[\u3400-\u9fff]/g)?.length ?? 0;
   const estimatedWords = latinWords + Math.ceil(cjkChars / 2);
@@ -29,11 +34,10 @@ export function readingMinutes(post: BlogPost) {
 
 export function getExcerpt(post: BlogPost, maxLength = 150) {
   const source = post.data.description || post.body;
-  const text = source
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
-    .replace(/\[[^\]]*]\(([^)]*)\)/g, ' ')
-    .replace(/[#>*_`~\-]/g, ' ')
+  const text = markdownToPlainText(source, {
+    linkPattern: /\[[^\]]*]\(([^)]*)\)/g,
+    markPattern: /[#>*_`~\-]/g
+  })
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -44,6 +48,18 @@ export function getExcerpt(post: BlogPost, maxLength = 150) {
 export function getPostCover(post: BlogPost) {
   const match = post.body.match(/!\[[^\]]*]\((\/img\/[^)\s]+)[^)]*\)/);
   return match?.[1] ?? '';
+}
+
+export async function getPostStaticPaths() {
+  const posts = await getAllPosts();
+  return posts.map((post, index) => ({
+    params: { slug: post.slug },
+    props: {
+      post,
+      newer: posts[index - 1],
+      older: posts[index + 1]
+    }
+  }));
 }
 
 export function getTags(posts: BlogPost[]) {
@@ -73,4 +89,21 @@ export function groupPostsByYear(posts: BlogPost[]) {
     groups.set(year, [...(groups.get(year) ?? []), post]);
   }
   return [...groups.entries()].sort((a, b) => Number(b[0]) - Number(a[0]));
+}
+
+function markdownToPlainText(
+  value: string,
+  {
+    linkPattern,
+    markPattern
+  }: {
+    linkPattern: RegExp;
+    markPattern: RegExp;
+  }
+) {
+  return value
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(linkPattern, ' ')
+    .replace(markPattern, ' ');
 }

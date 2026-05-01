@@ -4,8 +4,8 @@ import path from 'node:path';
 const ORIGIN = 'https://futami-akashi-lib.jp';
 const ROOT = new URL(`${ORIGIN}/`);
 const PUBLIC_DIR = path.resolve('public');
-const DATA_DIR = path.resolve('src/data');
-const OUTPUT_JSON = path.join(DATA_DIR, 'mirror-pages.json');
+const OUTPUT_DIR = path.resolve('output');
+const OUTPUT_JSON = path.join(OUTPUT_DIR, 'mirror-pages.json');
 const FONT_CSS_PATH = path.join(PUBLIC_DIR, 'assets/fonts/zen-maru-gothic.css');
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap';
 const LOCAL_SCHEMA_AVATAR = '/wp/wp-content/uploads/2025/03/logo.png';
@@ -335,7 +335,7 @@ function pageRecord(url, html) {
 }
 
 async function writeData() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.mkdir(OUTPUT_DIR, { recursive: true });
   const records = [...htmlPages.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([url, html]) => pageRecord(url, html));

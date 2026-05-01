@@ -1,49 +1,79 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import SectionHeader from '../../components/SectionHeader.astro';
-import { formatDate, getAllPosts, getExcerpt } from '../../utils/posts';
+import { getSearchSuggestions } from '../../utils/search';
 
-const posts = await getAllPosts();
-const searchItems = posts.map((post) => ({
-  title: post.data.title,
-  date: formatDate(post.data.date),
-  description: getExcerpt(post, 180),
-  url: `/posts/${post.slug}/`,
-  tags: post.data.tags,
-  categories: post.data.categories,
-  haystack: `${post.data.title} ${post.data.description} ${post.data.tags.join(' ')} ${post.data.categories.join(' ')} ${post.body}`.toLowerCase()
-}));
+const searchSuggestions = await getSearchSuggestions();
 ---
 
 <BaseLayout title="Search" description="Search posts from the honemik blog archive.">
-  <section class="page-hero wrap">
-    <SectionHeader eyebrow="Find notes" title="Search" description="Search titles, descriptions, tags, categories, and post bodies." align="center" />
-    <div class="search-box">
+  <section class="quiet-search wrap" aria-labelledby="search-title">
+    <div class="quiet-search__intro">
+      <p class="kicker">FIND NOTES</p>
+      <h1 id="search-title">Search</h1>
+      <p>Look through titles, descriptions, categories, tags, and post bodies.</p>
+    </div>
+
+    <div class="quiet-search-line">
       <label for="site-search">Search posts</label>
-      <input id="site-search" type="search" placeholder="Try Blog, Game, Tiddly, keyboard..." autocomplete="off" data-search-input />
+      <input id="site-search" type="search" placeholder="Try Blog, Game, Tiddly..." autocomplete="off" data-search-input />
     </div>
   </section>
 
-  <section class="section-pad section-pad--topless">
-    <div class="wrap search-results" data-search-results aria-live="polite"></div>
+  <section class="quiet-section wrap" aria-label="Search results">
+    <p class="quiet-search-count" data-search-count aria-live="polite"></p>
+    <div class="quiet-search-results" data-search-results></div>
   </section>
 
-  <script type="application/json" id="search-data" set:html={JSON.stringify(searchItems)}></script>
+  <script type="application/json" id="search-suggestions" set:html={JSON.stringify(searchSuggestions)}></script>
+  <script src="/search-data.js" is:inline></script>
   <script>
     const input = document.querySelector('[data-search-input]');
+    const searchLine = document.querySelector('.quiet-search-line');
     const results = document.querySelector('[data-search-results]');
-    const dataElement = document.getElementById('search-data');
-    const posts = JSON.parse(dataElement?.textContent || '[]');
+    const count = document.querySelector('[data-search-count]');
+    const suggestionElement = document.getElementById('search-suggestions');
+    const posts = Array.isArray(window['__HONEMIK_SEARCH_DATA__']) ? window['__HONEMIK_SEARCH_DATA__'] : [];
+    const suggestions = JSON.parse(suggestionElement?.textContent || '[]');
+    let compositionTimer;
+
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
 
     function resultTemplate(post) {
-      const terms = [...post.tags, ...post.categories].map((term) => `<span>${term}</span>`).join('');
+      const terms = post.terms.map((term) => `<span>${escapeHTML(term)}</span>`).join('');
       return `
-        <a class="search-result" href="${post.url}">
-          <time>${post.date}</time>
-          <strong>${post.title}</strong>
-          <p>${post.description}</p>
-          <span class="search-result__terms">${terms}</span>
+        <a class="quiet-search-row" href="${escapeHTML(post.url)}">
+          <time>${escapeHTML(post.date)}</time>
+          <span class="quiet-search-row__body">
+            <strong>${escapeHTML(post.title)}</strong>
+            <p>${escapeHTML(post.description)}</p>
+          </span>
+          <span class="quiet-search-row__terms">${terms}</span>
         </a>
+      `;
+    }
+
+    function emptyTemplate() {
+      const suggestionLinks = suggestions
+        .map((item) => `
+          <a href="${escapeHTML(item.url)}">
+            <span>${escapeHTML(item.label)}</span>
+            <small>${escapeHTML(item.count)} notes</small>
+          </a>
+        `)
+        .join('');
+
+      return `
+        <div class="empty-state empty-state--suggestions">
+          <p>No posts matched that search.</p>
+          <nav aria-label="Suggested topics">${suggestionLinks}</nav>
+        </div>
       `;
     }
 
@@ -53,13 +83,30 @@ const searchItems = posts.map((post) => ({
         ? posts.filter((post) => post.haystack.includes(normalized))
         : posts.slice(0, 10);
 
+      if (count) {
+        count.classList.add('is-updating');
+        count.textContent = normalized
+          ? `${matches.length} result${matches.length === 1 ? '' : 's'}`
+          : 'Showing 10 recent notes';
+        window.setTimeout(() => count.classList.remove('is-updating'), 160);
+      }
+
       if (!results) return;
+      document.body.classList.add('is-searching');
+      results.classList.add('is-updating');
       results.innerHTML = matches.length
         ? matches.map(resultTemplate).join('')
-        : '<p class="empty-state">No posts matched that search.</p>';
+        : emptyTemplate();
+      window.setTimeout(() => {
+        results.classList.remove('is-updating');
+        document.body.classList.remove('is-searching');
+      }, 220);
     }
 
     input?.addEventListener('input', (event) => {
+      searchLine?.classList.add('is-composing');
+      window.clearTimeout(compositionTimer);
+      compositionTimer = window.setTimeout(() => searchLine?.classList.remove('is-composing'), 260);
       render(event.target instanceof HTMLInputElement ? event.target.value : '');
     });
 

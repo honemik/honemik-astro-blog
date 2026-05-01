@@ -1,8 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostCard from '../../components/PostCard.astro';
-import SectionHeader from '../../components/SectionHeader.astro';
-import { getAllPosts, getTags, termSlug } from '../../utils/posts';
+import { formatDate, getAllPosts, getExcerpt, getTags, readingMinutes, termSlug } from '../../utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getAllPosts();
@@ -17,12 +15,41 @@ const posts = (await getAllPosts()).filter((post) => post.data.tags.some((item) 
 ---
 
 <BaseLayout title={`Tag: ${tag}`} description={`Posts tagged ${tag}.`}>
-  <section class="page-hero wrap">
-    <SectionHeader eyebrow="Tag" title={tag} description={`${posts.length} posts collected under this tag.`} align="center" />
+  <section class="page-hero wrap page-hero--editorial tag-detail-hero">
+    <a class="tag-back-link" href="/tags/">Back to tags</a>
+    <div class="tag-detail-mast">
+      <p class="kicker">TAG ARCHIVE</p>
+      <h1>{tag}</h1>
+      <div class="tag-detail-meta" aria-label="Tag archive summary">
+        <span>{posts.length} notes</span>
+        <span>chronological index</span>
+      </div>
+    </div>
   </section>
-  <section class="section-pad section-pad--topless">
-    <div class="wrap post-grid">
-      {posts.map((post) => <PostCard post={post} />)}
+  <section class="section-pad section-pad--topless editorial-archive">
+    <div class="wrap department-post-list">
+      {posts.map((post, index) => (
+        <div class="department-post-shell" data-mobile-meta>
+          <a class="department-post-row" href={`/posts/${post.slug}/`}>
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            <div>
+              <strong>{post.data.title}</strong>
+              <p>{post.data.description || getExcerpt(post, 96)}</p>
+            </div>
+            <div class="meta-row">
+              <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+              <span>{readingMinutes(post)} min</span>
+            </div>
+          </a>
+          <button class="mobile-meta-toggle" type="button" aria-expanded="false">
+            <span class="visually-hidden">Show note metadata</span>
+          </button>
+          <div class="mobile-row-meta" hidden>
+            <span>{formatDate(post.data.date)}</span>
+            <span>{readingMinutes(post)} min read</span>
+          </div>
+        </div>
+      ))}
     </div>
   </section>
 </BaseLayout>

@@ -1,29 +1,97 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostCard from '../../components/PostCard.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
-import { getAllPosts, getTags } from '../../utils/posts';
+import { formatDate, getAllPosts, getExcerpt, getTags, groupPostsByYear, readingMinutes, termSlug } from '../../utils/posts';
 
 const posts = await getAllPosts();
 const tags = getTags(posts);
+const years = groupPostsByYear(posts);
 ---
 
 <BaseLayout title="Posts" description="All posts migrated from honemik.github.io.">
-  <section class="page-hero wrap">
+  <section class="page-hero wrap page-hero--editorial">
     <SectionHeader
       eyebrow="All writing"
       title="Posts"
-      description={`${posts.length} notes, logs, reviews, and experiments from the original blog archive.`}
       align="center"
     />
-    <div class="term-cloud term-cloud--center">
-      {tags.map(([tag, count]) => <a href={`/tags/${tag.toLowerCase()}/`}>{tag}<span>{count}</span></a>)}
+    <nav class="post-topic-index" aria-label="Browse posts by tag">
+      <span class="post-topic-index__label">Topic index</span>
+      <div class="post-topic-index__items">
+        {tags.map(([tag, count], index) => (
+          <a class="post-topic-chip" href={`/tags/${termSlug(tag)}/`}>
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            <strong>{tag}</strong>
+            <small>{count}</small>
+          </a>
+        ))}
+      </div>
+    </nav>
+  </section>
+
+  <section class="section-pad section-pad--topless editorial-archive">
+    <div class="wrap editorial-archive__shell">
+      <nav class="archive-bookmark-rail" aria-label="Post year bookmarks">
+        {years.map(([year], index) => (
+          <a href={`#posts-year-section-${year}`} data-bookmark-link aria-current={index === 0 ? 'true' : undefined}>
+            <span>{year}</span>
+          </a>
+        ))}
+      </nav>
+      <div class="editorial-archive__list">
+      {years.map(([year, entries]) => {
+        const lead = entries[0];
+        const rest = entries.slice(1);
+        return (
+          <section class="editorial-year" id={`posts-year-section-${year}`} aria-labelledby={`posts-year-${year}`} data-year-section>
+            <div class="editorial-year__rail">
+              <p class="kicker">YEAR</p>
+              <h2 id={`posts-year-${year}`}>{year}</h2>
+              <span>{entries.length} posts</span>
+            </div>
+
+            <div class="editorial-year__content">
+              {lead && (
+                <a class="archive-feature-row" href={`/posts/${lead.slug}/`}>
+                  <div>
+                    <p class="kicker">FEATURED NOTE</p>
+                    <h3>{lead.data.title}</h3>
+                    <p>{lead.data.description || getExcerpt(lead, 120)}</p>
+                  </div>
+                  <div class="meta-row">
+                    <time datetime={lead.data.date.toISOString()}>{formatDate(lead.data.date)}</time>
+                    <span>{readingMinutes(lead)} min read</span>
+                  </div>
+                </a>
+              )}
+
+              <div class="archive-row-list">
+                {rest.map((post) => (
+                  <div class="archive-row-shell" data-mobile-meta>
+                    <a class="archive-row" href={`/posts/${post.slug}/`}>
+                      <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+                      <span class="archive-row__body">
+                        <strong>{post.data.title}</strong>
+                        <small class="archive-row__preview">{post.data.categories[0] ?? post.data.tags[0] ?? 'Note'}</small>
+                      </span>
+                      <span>{readingMinutes(post)} min</span>
+                    </a>
+                    <button class="mobile-meta-toggle" type="button" aria-expanded="false">
+                      <span class="visually-hidden">Show note metadata</span>
+                    </button>
+                    <div class="mobile-row-meta" hidden>
+                      <span>{post.data.categories[0] ?? post.data.tags[0] ?? 'Note'}</span>
+                      <span>{readingMinutes(post)} min read</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      })}
+      </div>
     </div>
   </section>
 
-  <section class="section-pad section-pad--topless">
-    <div class="wrap post-grid">
-      {posts.map((post) => <PostCard post={post} />)}
-    </div>
-  </section>
 </BaseLayout>

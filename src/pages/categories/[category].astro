@@ -1,8 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostCard from '../../components/PostCard.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
-import { getAllPosts, getCategories, termSlug } from '../../utils/posts';
+import { formatDate, getAllPosts, getCategories, getExcerpt, readingMinutes, termSlug } from '../../utils/posts';
 
 export async function getStaticPaths() {
   const posts = await getAllPosts();
@@ -17,12 +16,33 @@ const posts = (await getAllPosts()).filter((post) => post.data.categories.some((
 ---
 
 <BaseLayout title={`Category: ${category}`} description={`Posts in category ${category}.`}>
-  <section class="page-hero wrap">
+  <section class="page-hero wrap page-hero--editorial">
     <SectionHeader eyebrow="Category" title={category} description={`${posts.length} posts collected in this category.`} align="center" />
   </section>
-  <section class="section-pad section-pad--topless">
-    <div class="wrap post-grid">
-      {posts.map((post) => <PostCard post={post} />)}
+  <section class="section-pad section-pad--topless editorial-archive">
+    <div class="wrap department-post-list">
+      {posts.map((post, index) => (
+        <div class="department-post-shell" data-mobile-meta>
+          <a class="department-post-row" href={`/posts/${post.slug}/`}>
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            <div>
+              <strong>{post.data.title}</strong>
+              <p>{post.data.description || getExcerpt(post, 96)}</p>
+            </div>
+            <div class="meta-row">
+              <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+              <span>{readingMinutes(post)} min</span>
+            </div>
+          </a>
+          <button class="mobile-meta-toggle" type="button" aria-expanded="false">
+            <span class="visually-hidden">Show note metadata</span>
+          </button>
+          <div class="mobile-row-meta" hidden>
+            <span>{formatDate(post.data.date)}</span>
+            <span>{readingMinutes(post)} min read</span>
+          </div>
+        </div>
+      ))}
     </div>
   </section>
 </BaseLayout>

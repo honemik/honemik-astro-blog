@@ -1,33 +1,8 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostArticle from '../../components/PostArticle.astro';
-import { getAllPosts, getExcerpt, getPostCover } from '../../utils/posts';
+import PostPage from '../../components/PostPage.astro';
+import { getPostStaticPaths } from '../../utils/posts';
 
-export async function getStaticPaths() {
-  const posts = await getAllPosts();
-  return posts.map((post) => ({
-    params: { slug: post.slug },
-    props: { post }
-  }));
-}
-
-const { post } = Astro.props;
-const posts = await getAllPosts();
-const postIndex = posts.findIndex((entry) => entry.slug === post.slug);
-const newer = posts[postIndex - 1];
-const older = posts[postIndex + 1];
-const { Content, headings } = await post.render();
-const cover = getPostCover(post);
+export const getStaticPaths = getPostStaticPaths;
 ---
 
-<BaseLayout
-  title={post.data.title}
-  description={getExcerpt(post)}
-  image={cover || undefined}
-  canonical={`/posts/${post.slug}/`}
-  type="article"
->
-  <PostArticle post={post} headings={headings} newer={newer} older={older}>
-    <Content />
-  </PostArticle>
-</BaseLayout>
+<PostPage {...Astro.props} />
