@@ -3,6 +3,8 @@ import { defineCollection, z } from 'astro:content';
 const dateValue = z.union([z.date(), z.string()]).transform((value) => {
   if (value instanceof Date) return value;
   return new Date(value);
+}).refine((value) => !Number.isNaN(value.getTime()), {
+  message: 'Post date must be a valid date or ISO date string'
 });
 
 const booleanValue = z.union([z.boolean(), z.string()]).optional().default(false).transform((value) => {

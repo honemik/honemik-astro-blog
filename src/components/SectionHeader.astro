@@ -4,13 +4,15 @@ interface Props {
   title: string;
   description?: string;
   align?: 'left' | 'center';
+  level?: 1 | 2;
 }
 
-const { eyebrow, title, description, align = 'left' } = Astro.props;
+const { eyebrow, title, description, align = 'left', level = 2 } = Astro.props;
+const Heading = level === 1 ? 'h1' : 'h2';
 ---
 
 <header class={`section-header section-header--${align}`}>
   {eyebrow && <p class="section-eyebrow">{eyebrow}</p>}
-  <h2>{title}</h2>
+  <Heading>{title}</Heading>
   {description && <p>{description}</p>}
 </header>

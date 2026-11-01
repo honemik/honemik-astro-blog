@@ -77,6 +77,11 @@ body {
   max-width: min(86vw, 620px);
 }
 
+.hero-word-control {
+  position: relative;
+  width: min(86vw, 620px);
+}
+
 .hero-word {
   position: relative;
   display: block;
@@ -87,8 +92,18 @@ body {
   border: 0;
   color: var(--color-ink);
   background: transparent;
-  cursor: pointer;
   text-align: left;
+}
+
+.hero-word-button {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 .hero-word .word {
@@ -139,29 +154,29 @@ body {
     opacity 220ms ease;
 }
 
-.hero-word:hover .word-en,
-.hero-word:focus-visible .word-en {
+.hero-word-control:hover .word-en,
+.hero-word-control:focus-within .word-en {
   opacity: 0;
   transform: translateX(10px);
   filter: blur(2px);
   clip-path: inset(0 0 0 100%);
 }
 
-.hero-word:hover .word-zh,
-.hero-word:focus-visible .word-zh {
+.hero-word-control:hover .word-zh,
+.hero-word-control:focus-within .word-zh {
   opacity: 1;
   transform: translateX(0);
   filter: blur(0);
   clip-path: inset(0 0 0 0);
 }
 
-.hero-word:hover::after,
-.hero-word:focus-visible::after {
+.hero-word-control:hover .hero-word::after,
+.hero-word-control:focus-within .hero-word::after {
   left: 108%;
   opacity: 1;
 }
 
-.hero-word:focus-visible {
+.hero-word-button:focus-visible {
   outline: 1px solid var(--color-wood);
   outline-offset: 8px;
 }
@@ -247,6 +262,7 @@ body {
 @media (max-width: 920px) {
   .quiet-cover {
     overflow: hidden;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .quiet-cover::after {

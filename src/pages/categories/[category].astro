@@ -17,7 +17,7 @@ const posts = (await getAllPosts()).filter((post) => post.data.categories.some((
 
 <BaseLayout title={`Category: ${category}`} description={`Posts in category ${category}.`}>
   <section class="page-hero wrap page-hero--editorial">
-    <SectionHeader eyebrow="Category" title={category} description={`${posts.length} posts collected in this category.`} align="center" />
+    <SectionHeader eyebrow="Category" title={category} description={`${posts.length} posts collected in this category.`} align="center" level={1} />
   </section>
   <section class="section-pad section-pad--topless editorial-archive">
     <div class="wrap department-post-list">

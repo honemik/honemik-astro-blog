@@ -122,6 +122,16 @@ test('media queries stay conservatively consolidated', async () => {
   assert.equal(mediaBlocks(css, '(prefers-reduced-motion: reduce)').length, 5);
 });
 
+test('final responsive override keeps the mobile hero in one column', async () => {
+  const css = await readFile(new URL('../src/styles/partials/final-overrides.css', import.meta.url), 'utf8');
+  const responsiveBlocks = mediaBlocks(css, '(max-width: 920px)');
+
+  assert.ok(
+    responsiveBlocks.some((block) => /\.quiet-cover\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s.test(block)),
+    'the last hero override must preserve the single-column mobile layout'
+  );
+});
+
 test('consolidated reduced-motion protections remain present', async () => {
   const css = await readCss();
   const reducedMotionBlocks = mediaBlocks(css, '(prefers-reduced-motion: reduce)');

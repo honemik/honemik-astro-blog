@@ -7,12 +7,16 @@
     "dev": "astro dev",
     "migrate": "node scripts/migrate-source-blog.mjs",
     "test:css": "node --test scripts/css-safety.test.mjs",
-    "build": "astro build",
+    "test:site": "node --test scripts/site-output.test.mjs",
+    "test": "npm run test:css && npm run build && npm run test:site",
+    "build": "astro build && pagefind --site dist --glob \"posts/**/*.html\"",
     "preview": "astro preview"
   },
   "dependencies": {
     "astro": "^5.7.4",
     "typescript": "^5.8.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "pagefind": "^1.5.2"
+  }
 }

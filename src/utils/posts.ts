@@ -45,11 +45,6 @@ export function getExcerpt(post: BlogPost, maxLength = 150) {
   return `${text.slice(0, maxLength).trim()}...`;
 }
 
-export function getPostCover(post: BlogPost) {
-  const match = post.body.match(/!\[[^\]]*]\((\/img\/[^)\s]+)[^)]*\)/);
-  return match?.[1] ?? '';
-}
-
 export async function getPostStaticPaths() {
   const posts = await getAllPosts();
   return posts.map((post, index) => ({

@@ -51,12 +51,13 @@ const browseItems = [
     <span class="cover-change-folio" aria-hidden="true" data-cover-folio>01</span>
 
     <div class="quiet-cover__copy">
-      <h1 id="cover-title" class="quiet-cover__title">
-        <button class="hero-word" type="button" aria-label="Switch cover image" data-hero-title>
+      <div class="hero-word-control">
+        <h1 id="cover-title" class="quiet-cover__title hero-word">
           <span class="word word-en">honemik</span>
           <span class="word word-zh">蜂蜜牛奶</span>
-        </button>
-      </h1>
+        </h1>
+        <button class="hero-word-button" type="button" aria-label="Switch cover image" data-hero-title></button>
+      </div>
       <div class="quiet-cover__subtitles" aria-label="Primary homepage links">
         {featured && <a class="hand-subtitle" href={`/posts/${featured.slug}/`}>最近的一頁</a>}
         <a class="hand-subtitle" href="/archive/">慢慢翻閱</a>

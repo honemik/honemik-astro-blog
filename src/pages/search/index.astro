@@ -1,8 +1,17 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getSearchSuggestions } from '../../utils/search';
+import { formatDate, getAllPosts, getExcerpt } from '../../utils/posts';
 
 const searchSuggestions = await getSearchSuggestions();
+const recentPosts = (await getAllPosts()).slice(0, 10).map((post) => ({
+  title: post.data.title,
+  date: formatDate(post.data.date),
+  description: post.data.description || getExcerpt(post, 140),
+  url: `/posts/${post.slug}/`,
+  terms: [...post.data.categories, ...post.data.tags].slice(0, 4)
+}));
+const serializeForScript = (value: unknown) => JSON.stringify(value).replaceAll('<', '\\u003c');
 ---
 
 <BaseLayout title="Search" description="Search posts from the honemik blog archive.">
@@ -24,17 +33,20 @@ const searchSuggestions = await getSearchSuggestions();
     <div class="quiet-search-results" data-search-results></div>
   </section>
 
-  <script type="application/json" id="search-suggestions" set:html={JSON.stringify(searchSuggestions)}></script>
-  <script src="/search-data.js" is:inline></script>
-  <script>
+  <script type="application/json" id="search-suggestions" set:html={serializeForScript(searchSuggestions)}></script>
+  <script type="application/json" id="search-recent-posts" set:html={serializeForScript(recentPosts)}></script>
+  <script type="module" is:inline>
     const input = document.querySelector('[data-search-input]');
     const searchLine = document.querySelector('.quiet-search-line');
     const results = document.querySelector('[data-search-results]');
     const count = document.querySelector('[data-search-count]');
     const suggestionElement = document.getElementById('search-suggestions');
-    const posts = Array.isArray(window['__HONEMIK_SEARCH_DATA__']) ? window['__HONEMIK_SEARCH_DATA__'] : [];
+    const recentElement = document.getElementById('search-recent-posts');
     const suggestions = JSON.parse(suggestionElement?.textContent || '[]');
+    const recentPosts = JSON.parse(recentElement?.textContent || '[]');
     let compositionTimer;
+    let pagefindPromise;
+    let searchRequest = 0;
 
     function escapeHTML(value) {
       return String(value)
@@ -46,7 +58,7 @@ const searchSuggestions = await getSearchSuggestions();
     }
 
     function resultTemplate(post) {
-      const terms = post.terms.map((term) => `<span>${escapeHTML(term)}</span>`).join('');
+      const terms = (post.terms || []).map((term) => `<span>${escapeHTML(term)}</span>`).join('');
       return `
         <a class="quiet-search-row" href="${escapeHTML(post.url)}">
           <time>${escapeHTML(post.date)}</time>
@@ -57,6 +69,22 @@ const searchSuggestions = await getSearchSuggestions();
           <span class="quiet-search-row__terms">${terms}</span>
         </a>
       `;
+    }
+
+    function normalizeResult(result) {
+      const terms = Array.isArray(result.meta?.terms)
+        ? result.meta.terms
+        : result.meta?.terms
+          ? [result.meta.terms]
+          : [];
+
+      return {
+        title: result.meta?.title || 'Untitled note',
+        date: result.meta?.date || '',
+        description: result.plain_excerpt || '',
+        url: result.url,
+        terms
+      };
     }
 
     function emptyTemplate() {
@@ -77,39 +105,84 @@ const searchSuggestions = await getSearchSuggestions();
       `;
     }
 
-    function render(query = '') {
-      const normalized = query.trim().toLowerCase();
-      const matches = normalized
-        ? posts.filter((post) => post.haystack.includes(normalized))
-        : posts.slice(0, 10);
-
-      if (count) {
-        count.classList.add('is-updating');
-        count.textContent = normalized
-          ? `${matches.length} result${matches.length === 1 ? '' : 's'}`
-          : 'Showing 10 recent notes';
-        window.setTimeout(() => count.classList.remove('is-updating'), 160);
-      }
-
+    function renderRows(matches) {
       if (!results) return;
-      document.body.classList.add('is-searching');
       results.classList.add('is-updating');
       results.innerHTML = matches.length
         ? matches.map(resultTemplate).join('')
         : emptyTemplate();
+    }
+
+    function updateCount(message) {
+      if (!count) return;
+      count.classList.add('is-updating');
+      count.textContent = message;
+      window.setTimeout(() => count.classList.remove('is-updating'), 160);
+    }
+
+    function finishUpdate() {
       window.setTimeout(() => {
-        results.classList.remove('is-updating');
+        results?.classList.remove('is-updating');
         document.body.classList.remove('is-searching');
       }, 220);
     }
+
+    function loadPagefind() {
+      if (!pagefindPromise) {
+        pagefindPromise = import('/pagefind/pagefind.js').then(async (pagefind) => {
+          await pagefind.init();
+          return pagefind;
+        });
+      }
+      return pagefindPromise;
+    }
+
+    async function render(query = '') {
+      const normalized = query.trim();
+      const request = ++searchRequest;
+
+      if (!normalized) {
+        updateCount(`Showing ${recentPosts.length} recent note${recentPosts.length === 1 ? '' : 's'}`);
+        renderRows(recentPosts);
+        finishUpdate();
+        return;
+      }
+
+      document.body.classList.add('is-searching');
+      updateCount('Searching…');
+
+      try {
+        const pagefind = await loadPagefind();
+        const search = await pagefind.debouncedSearch(normalized, {}, 180);
+        if (!search || request !== searchRequest) return;
+
+        const matches = await Promise.all(search.results.slice(0, 50).map((result) => result.data()));
+        if (request !== searchRequest) return;
+
+        updateCount(`${search.results.length} result${search.results.length === 1 ? '' : 's'}`);
+        renderRows(matches.map(normalizeResult));
+      } catch {
+        if (request !== searchRequest) return;
+        updateCount('Search is unavailable');
+        if (results) {
+          results.innerHTML = '<div class="empty-state"><p>The search index is generated by the production build. Please try again after running the build.</p></div>';
+        }
+      } finally {
+        if (request === searchRequest) finishUpdate();
+      }
+    }
+
+    input?.addEventListener('focus', () => {
+      loadPagefind().catch(() => undefined);
+    }, { once: true });
 
     input?.addEventListener('input', (event) => {
       searchLine?.classList.add('is-composing');
       window.clearTimeout(compositionTimer);
       compositionTimer = window.setTimeout(() => searchLine?.classList.remove('is-composing'), 260);
-      render(event.target instanceof HTMLInputElement ? event.target.value : '');
+      void render(event.target instanceof HTMLInputElement ? event.target.value : '');
     });
 
-    render('');
+    void render('');
   </script>
 </BaseLayout>

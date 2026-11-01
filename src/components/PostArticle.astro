@@ -1,5 +1,5 @@
 ---
-import { formatDate, getPostCover, readingMinutes, termSlug, type BlogPost } from '../utils/posts';
+import { formatDate, readingMinutes, termSlug, type BlogPost } from '../utils/posts';
 
 interface Props {
   post: BlogPost;
@@ -9,16 +9,15 @@ interface Props {
 }
 
 const { post, headings = [], newer, older } = Astro.props;
-const cover = getPostCover(post);
 const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const primaryTerm = post.data.categories[0] ?? post.data.tags[0] ?? 'Note';
-const transitionName = `post-cover-${post.slug.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+const searchTerms = [...post.data.categories, ...post.data.tags].join(' ');
 ---
 
-<article class="article-page">
+<article class="article-page" data-pagefind-body>
   <header class="article-editorial-hero wrap">
     <div class="article-action-row">
-      <a class="back-link" href="/posts/">Back to all posts</a>
+      {post.data.ShowBreadCrumbs && <a class="back-link" href="/posts/">Back to all posts</a>}
       <button class="copy-link-button" type="button" data-copy-link data-copy-url={Astro.url.href} aria-live="polite">
         <span data-copy-label>Copy link</span>
       </button>
@@ -26,18 +25,13 @@ const transitionName = `post-cover-${post.slug.replace(/[^a-zA-Z0-9_-]/g, '-')}`
     <div class="article-kicker-row">
       <p class="kicker">{primaryTerm}</p>
       <div class="meta-row">
-        <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+        <time datetime={post.data.date.toISOString()} data-pagefind-meta="date">{formatDate(post.data.date)}</time>
         <span>{readingMinutes(post)} min read</span>
       </div>
     </div>
     <h1>{post.data.title}</h1>
     {post.data.description && <p class="article-deck">{post.data.description}</p>}
-    {cover && (
-      <figure class="article-cover" style={`--post-transition-name: ${transitionName};`}>
-        <img src={cover} alt="" loading="lazy" />
-        <figcaption class="caption">Image from the original honemik archive, preserved as part of this note.</figcaption>
-      </figure>
-    )}
+    {searchTerms && <span class="visually-hidden" data-pagefind-meta="terms">{searchTerms}</span>}
   </header>
 
   <div class="article-editorial-layout wrap">
@@ -59,7 +53,7 @@ const transitionName = `post-cover-${post.slug.replace(/[^a-zA-Z0-9_-]/g, '-')}`
         </div>
       </section>
 
-      {tocHeadings.length > 0 && (
+      {post.data.ShowToc && tocHeadings.length > 0 && (
         <section class="article-toc" aria-label="Table of contents">
           <p class="kicker">CONTENTS</p>
           <nav>

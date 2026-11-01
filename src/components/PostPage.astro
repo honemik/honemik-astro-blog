@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostArticle from './PostArticle.astro';
-import { getExcerpt, getPostCover, type BlogPost } from '../utils/posts';
+import { getExcerpt, type BlogPost } from '../utils/posts';
 
 interface Props {
   post: BlogPost;
@@ -11,13 +11,11 @@ interface Props {
 
 const { post, newer, older } = Astro.props;
 const { Content, headings } = await post.render();
-const cover = getPostCover(post);
 ---
 
 <BaseLayout
   title={post.data.title}
   description={getExcerpt(post)}
-  image={cover || undefined}
   canonical={`/posts/${post.slug}/`}
   type="article"
 >
